@@ -1,0 +1,53 @@
+/* style.css */
+
+/* 1. The main chat container padding */
+.stChatMessage {
+    display: flex !important;
+    margin-bottom: 1rem !important;
+    background-color: transparent !important; /* Remove default gray */
+}
+
+/* 2. Target the Bubble wrapper */
+[data-testid="stChatMessage"] {
+    max-width: 80% !important;
+    border-radius: 15px !important;
+    padding: 10px !important;
+    position: relative !important;
+}
+
+/* 🤖 BOT / ASSISTANT (Aligned Left) */
+[data-testid="stChatMessage"][aria-label="Chat message from assistant"] {
+    margin-right: auto !important; /* Push to left */
+    margin-left: 0 !important;
+    background-color: #ffffff !important; /* White bubble */
+    border: 1px solid #e1e1e1 !important;
+    border-top-left-radius: 2px !important; /* Typical chat tail look */
+}
+
+/* 👤 USER (Aligned Right) */
+[data-testid="stChatMessage"][aria-label="Chat message from user"] {
+    margin-left: auto !important; /* Push to right */
+    margin-right: 0 !important;
+    background-color: #dcf8c6 !important; /* WhatsApp Green */
+    border: 1px solid #c7e5a9 !important;
+    border-top-right-radius: 2px !important;
+    flex-direction: row-reverse !important; /* Avatar on the right */
+}
+
+/* 3. Text styling inside bubbles */
+[data-testid="stChatMessageContent"] {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #303030 !important;
+    font-size: 15px !important;
+    line-height: 1.4 !important;
+}
+
+[data-testid="stChatMessageContent"] p {
+    white-space: pre-line !important;
+    margin-bottom: 10px;
+}
+
+/* 4. Hide the default Streamlit avatar background if needed */
+[data-testid="stChatMessageAvatar"] {
+    background-color: transparent !important;
+}

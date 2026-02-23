@@ -1,0 +1,7 @@
+streamlit
+pandas
+langchain-openai
+crewai
+python-pptx
+PyPDF2
+pydantic
