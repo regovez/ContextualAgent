@@ -18,7 +18,7 @@ st.title("Welcome to the Contextual Intelligence PoC")
 
 st.markdown("""
 ### Getting Started
-1. **L2 Reviewer POV:** Go to the Inbox to approve pending documents.
+1. **Knowledge Curator Validation:** Go to the Inbox to approve pending documents.
 2. **Conversation:** Conduct the conversation with the submitter.
 3. **Tracker:** Monitor progress and download results.
 """)
