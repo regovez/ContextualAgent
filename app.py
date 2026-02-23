@@ -23,8 +23,8 @@ st.markdown("""
 3. **Tracker:** Monitor progress and download results.
 """)
 
-if st.button("🚀 Start with L2 Reviewer POV"):
-    st.switch_page("pages/1_L2_Reviewer_PoV.py")
+if st.button("🚀 Start with Knowledge Curator Validation Page"):
+    st.switch_page("pages/1_Knowledge_Curator_Validation.py")
 
 # persistent Sidebar Info
 st.sidebar.info("Select a stage from the list above to begin.")
