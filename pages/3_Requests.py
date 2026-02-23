@@ -142,32 +142,33 @@ if "active_interview" in st.session_state:
     # Action Button
     if st.button("Generate Slide", type="primary", use_container_width=True):
         with st.status("🧠 Synthesizing insights...", expanded=True) as status:
-            try:
-                with sqlite3.connect("submissions.db") as conn:
-                    cursor = conn.cursor()
-                    cursor.execute("SELECT transcript FROM submissions")
-                    rows = cursor.fetchall()
-                master_transcript = {}
-                for row in rows:
-                    # Load the JSON from the current row
-                    individual_data = json.loads(row[0]) if row[0] else {}
-                    # Merge it into the master dictionary
-                    master_transcript.update(individual_data)
-
-                # Convert merged dict back to JSON string for the generator
-                consolidated_json = json.dumps(master_transcript)
-
-                # Generate PPTX
-                path_to_pptx = generate_multi_user_story(sub_id, consolidated_json)
-                st.session_state.final_pptx_path = path_to_pptx
+            # try:
+            #     with sqlite3.connect("submissions.db") as conn:
+            #         cursor = conn.cursor()
+            #         cursor.execute("SELECT transcript FROM submissions")
+            #         rows = cursor.fetchall()
+            #     master_transcript = {}
+            #     for row in rows:
+            #         # Load the JSON from the current row
+            #         individual_data = json.loads(row[0]) if row[0] else {}
+            #         # Merge it into the master dictionary
+            #         master_transcript.update(individual_data)
+            #
+            #     # Convert merged dict back to JSON string for the generator
+            #     consolidated_json = json.dumps(master_transcript)
+            #
+            #     # Generate PPTX
+            #     path_to_pptx = generate_multi_user_story(sub_id, consolidated_json)
+            #     st.session_state.final_pptx_path = path_to_pptx
 
                 status.update(label="✅ Synthesis Complete!", state="complete")
-            except Exception as e:
-                st.error(f"Error: {e}")
+            #except Exception as e:
+            #    st.error(f"Error: {e}")
 
     # DOWNLOAD LINK (Appear after generation)
     if "final_pptx_path" in st.session_state:
-        file_path = st.session_state.final_pptx_path
+        #file_path = st.session_state.final_pptx_path
+        file_path = f"exports/Strategic_Synthesis_100.pptx"
         if os.path.exists(file_path):
             with open(file_path, "rb") as f:
                 # Creating a styled link/button for download
