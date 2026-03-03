@@ -2,8 +2,7 @@ import sqlite3
 import time
 import streamlit as st
 from agents_logic import get_agent_feedback
-from database import save_answer, pptx_created, save_complete_questioning
-from agents_logic import run_designer_task
+from database import save_answer, save_complete_questioning
 from fixed_questions import question6, question7, question8, answer2, answer3
 
 st.set_page_config(
@@ -52,9 +51,10 @@ conversation_data = st.session_state.active_interview
 submitter_name = conversation_data.get("user", "submitter")
 doc_path = conversation_data.get("path", "the document")
 dynamic_questions = conversation_data.get("questions", [])
-questions = [question6, question7, question8]
-questions.extend(dynamic_questions)
-total_qs = 12
+
+# Logic: f1 (impact matrix) counts as 1 section, f2-f6 follow.
+# total_dynamic = 4 (Usually questions 7, 8, 9, 10)
+total_dynamic = len(dynamic_questions)
 
 st.title(f"💬 Conversation with {submitter_name}")
 
@@ -76,15 +76,6 @@ for message in st.session_state.messages:
             st.markdown(f"👤 **{submitter_name}** : {message['content']}")
         else:
             st.markdown(message["content"])
-
-# Updated mapping for the Matrix Sliders
-impact_map = {
-    0: "😶",
-    1: "🤨",
-    2: "😐",
-    3: "🙂",
-    4: "🤩"
-}
 
 # --- PHASE B: THE STRUCTURED FORM (Independent Rendering) ---
 if st.session_state.consent_given and st.session_state.current_q_index == 1:
@@ -158,7 +149,7 @@ if st.session_state.consent_given and st.session_state.current_q_index == 1:
                                      "(e.g., HIPAA/FedRAMP).",
                                      "Others"])
 
-        if st.form_submit_button("Next (7 questions remaining)"):
+        if st.form_submit_button(f"Next ({total_dynamic} questions remaining)"):
             if not f2 or not f3 or not f4 or not f5 or not f6:
                 st.error("⚠️ All sections must have at least one selection before proceeding.")
             else:
@@ -171,12 +162,13 @@ if st.session_state.consent_given and st.session_state.current_q_index == 1:
             for q, a in form_map.items():
                 save_answer(1, q, a)
 
+            # Move to the first dynamic question (Question 7)
             st.session_state.current_q_index = 7
-            first_dynamic_q = questions[0]
-            response_text = (
-                f"Fundamentals received! Let's start our chat.\n\n"
-                f"**Question 7** (6 remaining):\n{first_dynamic_q}"
-            )
+            first_dynamic_q = dynamic_questions[0]
+
+            # Calculation for remaining: if we are at Q7 of 10, 3 remain (8, 9, 10)
+            remaining = total_dynamic - 1
+            response_text = f"{first_dynamic_q} ({remaining} remaining questions)"
 
             # 3. Add to history so it persists after rerun
             st.session_state.messages.append({"role": "assistant", "content": response_text})
@@ -186,9 +178,6 @@ if st.session_state.consent_given and st.session_state.current_q_index == 1:
 if prompt := st.chat_input("Enter your response..."):
     st.chat_message("user").markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
-
-    with st.spinner("Agent is analyzing..."):
-        time.sleep(0.5)
 
     response_text = ""
 
@@ -202,47 +191,36 @@ if prompt := st.chat_input("Enter your response..."):
             response_text = "Shall we begin our conversation? (Yes/No)"
 
     # PHASE C: AI CHAT (Questions 7-10)
-    elif 7 <= st.session_state.current_q_index <= total_qs:
-        idx = st.session_state.current_q_index
-        answered_q = questions[idx - 7]
-        agent_feedback = get_agent_feedback(prompt, answered_q, st.session_state.messages[-5:])
+    elif st.session_state.current_q_index >= 7:
+        # Map current_q_index (7, 8, 9, 10) to dynamic_questions list index (0, 1, 2, 3)
+        list_idx = st.session_state.current_q_index - 7
 
-        if "PROCEED" in agent_feedback or st.session_state.nudge_count >= 1:
-            save_answer(1, answered_q, prompt)
-            st.session_state.nudge_count = 0
-            if idx < total_qs:
-                next_q = questions[idx - 6]
-                response_text = f"**Question {idx + 1}** ({total_qs - (idx + 1)} remaining):\n{next_q}"
-                st.session_state.current_q_index += 1
+        if list_idx < total_dynamic:
+            current_q_text = dynamic_questions[list_idx]
+            agent_feedback = get_agent_feedback(prompt, current_q_text, st.session_state.messages[-5:])
+
+            if "PROCEED" in agent_feedback or st.session_state.nudge_count >= 1:
+                sub_id = st.session_state.active_interview.get('id', 100)
+                save_answer(sub_id, current_q_text, prompt)
+                st.session_state.nudge_count = 0
+
+                # Check if there is another question after this one
+                if list_idx + 1 < total_dynamic:
+                    st.session_state.current_q_index += 1
+                    next_q_text = dynamic_questions[list_idx + 1]
+                    remaining = total_dynamic - (list_idx + 2)
+                    response_text = f"{next_q_text} ({remaining} remaining questions)"
+
+                else:
+                    response_text = "That was the final question! Thanks for your time."
+                    st.session_state.current_q_index = 999
+                    save_complete_questioning(2, answer2)
+                    save_complete_questioning(3, answer3)
             else:
-                response_text = "That was the final question! Thanks for your time."
-                st.session_state.current_q_index += 1
-                save_complete_questioning(2, answer2)
-                save_complete_questioning(3, answer3)
-        else:
-            st.session_state.nudge_count += 1
-            response_text = f"{agent_feedback}\n\n*(Note: If the next answer is also short, I'll move to the next question automatically.)*"
+                st.session_state.nudge_count += 1
+                response_text = f"{agent_feedback}\n\n*(Note: If the next answer is also short, I'll move to the next question automatically.)*"
 
     # Final Response Rendering
     if response_text:
         final_text = type_response(response_text)
         st.session_state.messages.append({"role": "assistant", "content": final_text})
-
-# # --- PHASE D: AUTO-TRIGGER DESIGNER ---
-# if st.session_state.current_q_index > total_qs and any(
-#         "initiating" in m['content'].lower() for m in st.session_state.messages):
-#     sub_id = st.session_state.active_interview['id']
-#     with st.status("🎨 Building your PowerPoint...", expanded=True) as status:
-#         with sqlite3.connect("submissions.db") as conn:
-#             cursor = conn.cursor()
-#             cursor.execute("SELECT transcript, contact FROM submissions WHERE id = ?", (sub_id,))
-#             db_res = cursor.fetchone()
-#
-#         try:
-#             pptx_path = run_designer_task(sub_id, db_res[1], db_res[0])
-#             pptx_created(sub_id)
-#             status.update(label="✅ PowerPoint Ready!", state="complete", expanded=False)
-#             st.success(f"Report generated! Download it in the Tracker.")
-#             st.stop()
-#         except Exception as e:
-#             st.error(f"Error: {e}")

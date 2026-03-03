@@ -4,9 +4,10 @@ question2 = "Which of the following best describes the nature of this submission
 question3 = "Which client role or persona was this shared with or is going to be targeted to?"
 question4 = "What is the primary competitive advantage (USP) of this solution compared to standard market offerings?"
 question5 = "Which primary market challenge or client trigger is this material designed to address?"
-question6 = "Which solutions or capabilities position it most strongly, and in what types of opportunities is it meant to gain traction?"
-question7 = "What revenue streams or specific offerings are expected to support or accelerate growth?"
-question8 = "How does this differentiate us from competitors, and in which competitive scenarios is it most effective?"
+question6 = "In which scenarios should a sales team AVOID pitching this solution?"
+question7 = "Which solutions or capabilities position it most strongly, and in what types of opportunities is it meant to gain traction?"
+question8 = "What revenue streams or specific offerings are expected to support or accelerate growth?"
+question9 = "How does this differentiate us from competitors, and in which competitive scenarios is it most effective?"
 
 
 answer2 = {

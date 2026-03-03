@@ -25,7 +25,7 @@ root_path = os.path.dirname(os.path.dirname(__file__))
 img_path = os.path.join(root_path, "myRequests.png")
 
 if os.path.exists(img_path):
-    st.image(img_path, use_container_width=True)
+    st.image(img_path, width="stretch")
 else:
     st.error(f"File not found. Looking in: {img_path}")
 
@@ -140,7 +140,7 @@ if "active_interview" in st.session_state:
     sub_id = st.session_state.active_interview['id']
 
     # Action Button
-    if st.button("Generate Slide", type="primary", use_container_width=True):
+    if st.button("Generate Slide", type="primary", width="stretch"):
         with st.status("🧠 Synthesizing insights...", expanded=True) as status:
             # try:
             #     with sqlite3.connect("submissions.db") as conn:
@@ -159,8 +159,8 @@ if "active_interview" in st.session_state:
             #
             #     # Generate PPTX
             #     path_to_pptx = generate_multi_user_story(sub_id, consolidated_json)
-            #     st.session_state.final_pptx_path = path_to_pptx
-
+            #     path_to_pptx
+                st.session_state.final_pptx_path = f"exports/Strategic_Synthesis_100.pptx"
                 status.update(label="✅ Synthesis Complete!", state="complete")
             #except Exception as e:
             #    st.error(f"Error: {e}")
@@ -177,7 +177,7 @@ if "active_interview" in st.session_state:
                     data=f,
                     file_name=os.path.basename(file_path),
                     mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                    use_container_width=True
+                    width="stretch"
                 )
 
 # Footer note
