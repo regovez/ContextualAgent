@@ -1,6 +1,8 @@
 import sqlite3
 import time
 import streamlit as st
+from aiohttp.web_response import json_response
+
 from agents_logic import get_agent_feedback
 from database import save_answer, save_complete_questioning
 from fixed_questions import question6, question7, question8, answer2, answer3
@@ -23,6 +25,8 @@ if "consent_given" not in st.session_state:
 if "nudge_count" not in st.session_state:
     st.session_state.nudge_count = 0
 
+all_responses = [answer2, answer3]
+answer1 = {}
 
 def apply_custom_css():
     try:
@@ -161,6 +165,7 @@ if st.session_state.consent_given and st.session_state.current_q_index == 1:
                 }
             for q, a in form_map.items():
                 save_answer(1, q, a)
+                answer1[q] = a
 
             # Move to the first dynamic question (Question 7)
             st.session_state.current_q_index = 7
@@ -202,6 +207,7 @@ if prompt := st.chat_input("Enter your response..."):
             if "PROCEED" in agent_feedback or st.session_state.nudge_count >= 1:
                 sub_id = st.session_state.active_interview.get('id', 100)
                 save_answer(sub_id, current_q_text, prompt)
+                answer1[current_q_text] = prompt
                 st.session_state.nudge_count = 0
 
                 # Check if there is another question after this one
@@ -216,6 +222,8 @@ if prompt := st.chat_input("Enter your response..."):
                     st.session_state.current_q_index = 999
                     save_complete_questioning(2, answer2)
                     save_complete_questioning(3, answer3)
+                    all_responses = [answer1, answer2, answer3]
+                    st.session_state.all_responses = all_responses
             else:
                 st.session_state.nudge_count += 1
                 response_text = f"{agent_feedback}\n\n*(Note: If the next answer is also short, I'll move to the next question automatically.)*"

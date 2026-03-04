@@ -16,8 +16,9 @@ def create_multi_user_pptx(sub_id, transcript_json, gpt4o):
         Instructions:
         1. Use only the facts/information shared without adding any additional info or data.
         2. Identify the key insights and client-relevant elements.
-        3. The tone should be professional, persuasive, and cohesive.
+        3. The tone should be professional, persuasive, outcome-focused and cohesive.
         4. Keep the output concise enough to fit on a single PowerPoint slide (max 200 words).
+        5. Do not include Title
         """
 
     try:
@@ -55,8 +56,8 @@ def create_multi_user_pptx(sub_id, transcript_json, gpt4o):
     # Clear existing text and add the new one
     p = tf.paragraphs[0]
     p.text = story_text
-    p.font.size = Pt(16)
-    p.font.color.rgb = RGBColor(0, 0, 0)  # Black text for readability
+    p.font.size = Pt(12)
+    p.font.color.rgb = RGBColor(255, 255, 255)  # White text for readability
 
     # 6. Save as a new file to keep the template intact
     if not os.path.exists("exports"):
