@@ -160,16 +160,32 @@ if "active_interview" in st.session_state:
             #     # Generate PPTX
             #     path_to_pptx = generate_multi_user_story(sub_id, consolidated_json)
             #     path_to_pptx
-                st.session_state.final_pptx_path = f"exports/Strategic_Synthesis_100.pptx"
-                status.update(label="✅ Synthesis Complete!", state="complete")
+            master_transcript = {}
+            for item in st.session_state.all_responses:
+                master_transcript.update(item)
+            consolidated_json = json.dumps(master_transcript)
+            path_to_pptx = generate_multi_user_story(sub_id, consolidated_json)
+            st.session_state.final_pptx_path = path_to_pptx
+            status.update(label="✅ Synthesis Complete!", state="complete")
             #except Exception as e:
             #    st.error(f"Error: {e}")
 
     # DOWNLOAD LINK (Appear after generation)
     if "final_pptx_path" in st.session_state:
-        #file_path = st.session_state.final_pptx_path
-        file_path = f"exports/Strategic_Synthesis_100.pptx"
+        file_path = st.session_state.final_pptx_path
+        #file_path = f"exports/Strategic_Synthesis_Example.pptx"
         if os.path.exists(file_path):
+            with open(file_path, "rb") as f:
+                # Creating a styled link/button for download
+                st.download_button(
+                    label="🚀 Download Generated PowerPoint",
+                    data=f,
+                    file_name=os.path.basename(file_path),
+                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                    width="stretch"
+                )
+        else:
+            file_path = f"exports/Strategic_Synthesis_Example.pptx"
             with open(file_path, "rb") as f:
                 # Creating a styled link/button for download
                 st.download_button(
