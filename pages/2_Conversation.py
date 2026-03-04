@@ -1,8 +1,4 @@
-import sqlite3
-import time
 import streamlit as st
-from aiohttp.web_response import json_response
-
 from agents_logic import get_agent_feedback
 from database import save_answer, save_complete_questioning
 from fixed_questions import question6, question7, question8, answer2, answer3
@@ -55,9 +51,6 @@ conversation_data = st.session_state.active_interview
 submitter_name = conversation_data.get("user", "submitter")
 doc_path = conversation_data.get("path", "the document")
 dynamic_questions = conversation_data.get("questions", [])
-
-# Logic: f1 (impact matrix) counts as 1 section, f2-f6 follow.
-# total_dynamic = 4 (Usually questions 7, 8, 9, 10)
 total_dynamic = len(dynamic_questions)
 
 st.title(f"💬 Conversation with {submitter_name}")
@@ -197,9 +190,7 @@ if prompt := st.chat_input("Enter your response..."):
 
     # PHASE C: AI CHAT (Questions 7-10)
     elif st.session_state.current_q_index >= 7:
-        # Map current_q_index (7, 8, 9, 10) to dynamic_questions list index (0, 1, 2, 3)
         list_idx = st.session_state.current_q_index - 7
-
         if list_idx < total_dynamic:
             current_q_text = dynamic_questions[list_idx]
             agent_feedback = get_agent_feedback(prompt, current_q_text, st.session_state.messages[-5:])

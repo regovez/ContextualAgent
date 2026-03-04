@@ -46,10 +46,7 @@ else:
 if st.button("APPROVE", key="init_approve"):
     with st.status("🧠 Architect Agent: Analyzing Document...", expanded=True) as status:
         try:
-            # Initial generation of 5 dynamic questions
             dynamic_questions = generate_strategic_questions(DOC_PATH, DOC_NAME)
-
-            # Store as a dictionary to track index-specific edits and selection
             st.session_state.dynamic_questions = dynamic_questions
             st.session_state.analysis_complete = True
             status.update(label="✅ Initial Questions Generated", state="complete", expanded=False)
@@ -134,8 +131,6 @@ if st.session_state.get("analysis_complete"):
 
     with col_app:
         if st.button("Approve Questions"):
-            # Use exactly what is currently visible in the text inputs
-            #final_approved = current_screen_questions
             SUB_ID = 100
 
             try:
@@ -153,7 +148,7 @@ if st.session_state.get("analysis_complete"):
                 }
 
                 st.success("✅ Context Intelligence Agent will start conversation with: **sushmita.bhamidipati, vikalp.tandon, samuel.t.agris**")
-                # Optional: st.switch_page("pages/2_Conversation.py")
+                # st.switch_page("pages/2_Conversation.py")
             except Exception as e:
                 st.error(f"Error saving to database: {e}")
 
