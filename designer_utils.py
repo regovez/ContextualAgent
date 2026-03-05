@@ -44,11 +44,7 @@ def create_multi_user_pptx(sub_id, transcript_json, gpt4o):
         title_shape = slide_story.shapes.title
         title_shape.text = "Contextual Intelligence Unified Insights"
 
-    # 4. Generate the story from the 3 perspectives
-    # This uses your existing synthesis logic
     story_text = response.content.strip()
-
-    # 5. Inject the text into the body placeholder
     body_shape = slide_story.placeholders[1]
     tf = body_shape.text_frame
     tf.word_wrap = True
@@ -202,7 +198,6 @@ def create_executive_pptx(sub_id, submitter, transcript_json, gpt4o):
     slide_5 = prs.slides.add_slide(prs.slide_layouts[1])
     slide_5.shapes.title.text = "Strategic Narrative & Client Insights"
 
-    # Generate the story using the new function
     story_text = generate_impactful_story(data, gpt4o)
 
     # Place text in the main content body
@@ -212,7 +207,7 @@ def create_executive_pptx(sub_id, submitter, transcript_json, gpt4o):
 
     p = tf.paragraphs[0]
     p.text = story_text
-    p.font.size = Pt(14)  # Slightly smaller font to ensure the story fits
+    p.font.size = Pt(14)
 
     # Add footer (if you kept that function)
     add_footer(slide_5)

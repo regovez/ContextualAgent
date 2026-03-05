@@ -74,6 +74,5 @@ def save_answer(sub_id, question, answer):
             print(f"Error: No submission found with ID {sub_id}")
 
 def pptx_created(sub_id):
-    # ADD THIS: Update to 'Summary Generated' so the Tracker shows the button
     with sqlite3.connect("submissions.db") as conn:
         conn.execute("UPDATE submissions SET status = 'Summary Generated' WHERE id = ?", (sub_id,))
