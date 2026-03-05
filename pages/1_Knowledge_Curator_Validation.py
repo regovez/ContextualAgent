@@ -17,8 +17,8 @@ st.set_page_config(
 # --- 1. SETUP SESSION STATE ---
 if "dynamic_questions" not in st.session_state:
     st.session_state.dynamic_questions = []
-if "edit_mode" not in st.session_state:
-    st.session_state.edit_mode = False
+if "question_backups" not in st.session_state:
+    st.session_state.question_backups = {} # Stores previous versions for Undo
 
 st.markdown("""
     <style>
@@ -63,93 +63,70 @@ if st.session_state.get("analysis_complete"):
 
     st.divider()
     st.subheader("📋 Generated Strategic Questions")
+    st.info("You can regenerate individual questions. Use the 'Undo' button to revert to the previous version.")
 
-    # Track checked indices for both Regenerate and Edit actions
-    selected_indices = []
+    if "regen_status" not in st.session_state:
+        # Initialize all 4 dynamic questions as "Not Regenerated" (False)
+        st.session_state.regen_status = {i: False for i in range(len(st.session_state.dynamic_questions))}
 
+    # Iterate through generated questions
     for i, q in enumerate(st.session_state.dynamic_questions):
         display_idx = i + 7
-        col_check, col_text = st.columns([0.1, 0.9])
 
-        with col_check:
-            is_checked = st.checkbox(f" ", key=f"select_{display_idx}")
-            if is_checked:
-                selected_indices.append(i)
+        # Container for each question's row
+        with st.container():
+            col_text, col_reg, col_undo = st.columns([0.7, 0.15, 0.15])
 
-        with col_text:
-            # Display as clean text until Edit Mode is activated
-            st.markdown(f"**Question {display_idx}:** {q}")
+            with col_text:
+                st.markdown(f"**Question {display_idx}:** {q}")
 
-    st.write("")
+            with col_reg:
+                is_disabled = st.session_state.regen_status.get(i, False)
+                # Individual Regenerate Button
+                if st.button(f"🔄 Regen Q{display_idx}", key=f"reg_{display_idx}", disabled=is_disabled):
+                    with st.spinner(f"Refining Q{display_idx}..."):
+                        # Backup current version before changing
+                        st.session_state.question_backups[i] = q
 
-    # --- 3. ACTION BUTTONS ---
-    col_reg, col_edit, col_app = st.columns(3)
+                        # Fetch fresh batch and pick one to replace
+                        fresh_batch = generate_strategic_questions(DOC_PATH, DOC_NAME)
+                        st.session_state.dynamic_questions[i] = fresh_batch[i]
+                        st.session_state.regen_status[i] = True
+                        st.rerun()
 
-    with col_reg:
-        if st.button("Re-Generate Selected"):
-            if not selected_indices:
-                st.warning("Please select questions to replace.")
-            else:
-                with st.spinner("🔄 Architect Agent refining..."):
-                    fresh_batch = generate_strategic_questions(DOC_PATH,DOC_NAME)
-                    for idx in selected_indices:
-                        st.session_state.dynamic_questions[idx] = fresh_batch[idx]
+            with col_undo:
+                # Individual Undo Button
+                # Only enabled if a backup exists for this index
+                has_backup = i in st.session_state.question_backups
+                if st.button(f"↩️ Undo Q{display_idx}", key=f"undo_{display_idx}", disabled=not has_backup):
+                    # Swap current with backup
+                    current_val = st.session_state.dynamic_questions[i]
+                    st.session_state.dynamic_questions[i] = st.session_state.question_backups[i]
+                    st.session_state.question_backups[i] = current_val  # Allows toggling back
                     st.rerun()
+        st.write("")  # Spacer
 
-    with col_edit:
-        if st.button("Edit Selected"):
-            if not selected_indices:
-                st.warning("Please select questions to edit.")
-            else:
-                st.session_state.edit_mode = True
-                st.session_state.indices_to_edit = selected_indices
+    st.divider()
 
-    # --- 4. DYNAMIC EDIT FIELDS (Appears only after clicking Edit) ---
-    if st.session_state.edit_mode:
-        st.info("✍️ Modify the selected questions below:")
-        temp_updates = {}
+    # --- FINAL APPROVAL ---
+    if st.button("Approve Questions", type="primary", use_container_width=True):
+        SUB_ID = 100
+        DOC_NAME = "Agentic Commerce State of the Nation POV.pdf"
+        try:
+            # Initialize stakeholder records
+            approve_submission(1, SUB_ID, DOC_NAME, "sushmita.bhamidipati")
+            approve_submission(2, SUB_ID, DOC_NAME, "vikalp.tandon")
+            approve_submission(3, SUB_ID, DOC_NAME, "samuel.t.agris")
 
-        for idx in st.session_state.indices_to_edit:
-            display_idx = idx + 5
-            # Create a text input for each selected question
-            temp_updates[idx] = st.text_input(
-                f"Edit Question {display_idx}",
-                value=st.session_state.dynamic_questions[idx],
-                key=f"input_edit_{display_idx}"
-            )
-
-        if st.button("Save Manual Edits"):
-            # Update the master list with the new typed content
-            for idx, new_text in temp_updates.items():
-                st.session_state.dynamic_questions[idx] = new_text
-
-            # Close edit mode and refresh the printed list
-            st.session_state.edit_mode = False
-            st.success("✅ Edits saved to the master list.")
-            st.rerun()
-
-
-    with col_app:
-        if st.button("Approve Questions"):
-            SUB_ID = 100
-
-            try:
-                # Initialize stakeholder records
-                approve_submission(1, SUB_ID, DOC_NAME, "sushmita.bhamidipati")
-                approve_submission(2, SUB_ID, DOC_NAME, "vikalp.tandon")
-                approve_submission(3, SUB_ID, DOC_NAME, "samuel.t.agris")
-
-                # Move the edited, on-screen text to the next phase
-                st.session_state.active_interview = {
-                    "id": SUB_ID,
-                    "path": DOC_NAME,
-                    "questions": st.session_state.dynamic_questions,
-                    "user": "sushmita.bhamidipati"
-                }
-
-                st.success("✅ Context Intelligence Agent will start conversation with: **sushmita.bhamidipati, vikalp.tandon, samuel.t.agris**")
-                # st.switch_page("pages/2_Conversation.py")
-            except Exception as e:
-                st.error(f"Error saving to database: {e}")
+            st.session_state.active_interview = {
+                "id": SUB_ID,
+                "path": DOC_NAME,
+                "questions": st.session_state.dynamic_questions,
+                "user": "sushmita.bhamidipati"
+            }
+            st.success("✅ Context Intelligence Agent will start conversation with: **sushmita.bhamidipati, vikalp.tandon, samuel.t.agris**")
+            st.balloons()
+        except Exception as e:
+            st.error(f"Error saving to database: {e}")
 
 st.caption("Contextual Intelligence Engine v1.0 | Powered by GPT-4o & CrewAI")
